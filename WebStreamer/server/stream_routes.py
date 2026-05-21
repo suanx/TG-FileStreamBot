@@ -7,7 +7,6 @@ import math
 import logging
 import secrets
 import mimetypes
-from collections import defaultdict
 from aiohttp import web
 from aiohttp.http_exceptions import BadStatusLine
 from WebStreamer.bot import multi_clients, work_loads
@@ -19,7 +18,7 @@ logger = logging.getLogger("routes")
 # Rate limiting configuration
 RATE_LIMIT_WINDOW = 60  # seconds
 RATE_LIMIT_MAX_REQUESTS = 30  # max requests per window per IP
-rate_limit_store: dict[str, list[float]] = defaultdict(list)
+rate_limit_store: dict[str, list[float]] = {}
 
 
 async def rate_limit_middleware(app, handler):
@@ -28,14 +27,25 @@ async def rate_limit_middleware(app, handler):
         ip = request.remote or "unknown"
         now = time.time()
         
-        # Clean old entries
-        rate_limit_store[ip] = [t for t in rate_limit_store[ip] if now - t < RATE_LIMIT_WINDOW]
+        # Clean old entries and remove empty ones
+        if ip in rate_limit_store:
+            rate_limit_store[ip] = [t for t in rate_limit_store[ip] if now - t < RATE_LIMIT_WINDOW]
+            if not rate_limit_store[ip]:
+                del rate_limit_store[ip]
+        
+        # Periodically clean up stale IP entries (every 100 requests)
+        if len(rate_limit_store) > 10000:
+            stale_ips = [k for k, v in rate_limit_store.items() if not v]
+            for k in stale_ips:
+                del rate_limit_store[k]
         
         # Check rate limit
-        if len(rate_limit_store[ip]) >= RATE_LIMIT_MAX_REQUESTS:
+        if ip in rate_limit_store and len(rate_limit_store[ip]) >= RATE_LIMIT_MAX_REQUESTS:
             logger.warning(f"Rate limit exceeded for IP: {ip}")
             raise web.HTTPTooManyRequests(text="Rate limit exceeded. Please try again later.")
         
+        if ip not in rate_limit_store:
+            rate_limit_store[ip] = []
         rate_limit_store[ip].append(now)
         return await handler(request)
     

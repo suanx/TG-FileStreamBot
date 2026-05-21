@@ -15,9 +15,10 @@ class Var(object):
     BOT_TOKEN = str(environ.get("BOT_TOKEN"))
     SLEEP_THRESHOLD = int(environ.get("SLEEP_THRESHOLD", "60"))  # 1 minte
     WORKERS = int(environ.get("WORKERS", "6"))  # 6 workers = 6 commands at once
-    BIN_CHANNEL = int(environ.get("BIN_CHANNEL"))
+    BIN_CHANNEL = environ.get("BIN_CHANNEL")
     if not BIN_CHANNEL:
         sys.exit("ERROR: BIN_CHANNEL is not set. Please set it in your .env file.")
+    BIN_CHANNEL = int(BIN_CHANNEL)
     PORT = int(environ.get("PORT", 8080))
     BIND_ADDRESS = str(environ.get("WEB_SERVER_BIND_ADDRESS", "0.0.0.0"))
     PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))  # 20 minutes

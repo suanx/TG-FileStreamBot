@@ -8,6 +8,11 @@ from ..vars import Var
 import logging
 from pyrogram import Client
 
+# 代理配置
+_proxy = None
+if hasattr(Var, 'PROXY') and Var.PROXY:
+    _proxy = Var.PROXY
+
 logger = logging.getLogger("bot")
 
 sessions_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions")
@@ -27,6 +32,8 @@ StreamBot = Client(
     sleep_threshold=Var.SLEEP_THRESHOLD,
     workers=Var.WORKERS,
     in_memory=not Var.USE_SESSION_FILE,
+    connection_timeout=120,
+    proxy=_proxy,
 )
 
 multi_clients = {}
