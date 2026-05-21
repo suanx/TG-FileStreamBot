@@ -11,8 +11,10 @@ logger = logging.getLogger("server")
 
 def web_server():
     logger.info("Initializing..")
-    web_app = web.Application(client_max_size=30000000)
-    web_app.middlewares.append(rate_limit_middleware)
+    web_app = web.Application(
+        client_max_size=30000000,
+        middlewares=[rate_limit_middleware]
+    )
     web_app.add_routes(routes)
     logger.info("Added routes")
     return web_app
