@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  fsb:
+      image: ghcr.io/suanx/tg-filestreambot:latest
+      restart: unless-stopped
+      container_name: fsb
+      env_file:
+       - .env
+      ports:
+       - 0.0.0.0:9191:9191
